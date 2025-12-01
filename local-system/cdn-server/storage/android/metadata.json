@@ -1,0 +1,8 @@
+{
+    "id": "v900",
+    "version": "9.0.0",
+    "fileUrl": "http://10.0.2.2:4000/files/android/update.zip",
+    "fileHash": "5df3a410fa29873824ccf86a9eb511142c643d6f3dd758039c8ec754d02be52f",
+    "status": "UPDATE",
+    "force": false
+}

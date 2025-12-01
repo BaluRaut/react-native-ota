@@ -1,0 +1,23 @@
+# General
+node_modules/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# React Native / Android / iOS build artifacts
+OtaPoc/android/app/build/
+OtaPoc/android/.gradle/
+OtaPoc/ios/build/
+OtaPoc/ios/Pods/
+OtaPoc/dist/
+
+# Local System Storage (Optional: Keep structure but ignore large binaries if you want)
+# local-system/cdn-server/storage/**/*.zip
+# local-system/cdn-server/storage/**/*.bundle
+
+# Editor
+.vscode/
+.idea/
+*.swp
