@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTA POC Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; }
+        h3 { color: #16a085; }
+        code {
+            background-color: #e8e8e8;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #c7254e;
+        }
+        pre {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .problem-box {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .solution-box {
+            background-color: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+        }
+        .success { background-color: #27ae60; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Self-Hosted OTA Update System <span class="status-badge success">POC SUCCESS</span></h1>
+
+    <h2>1. Overview</h2>
+    <p>This project demonstrates a secure, self-hosted Over-The-Air (OTA) update system for React Native applications using the <code>hot-updater</code> library. The goal was to bypass third-party services (like CodePush) and maintain full control over the update distribution pipeline using a custom backend.</p>
+
+    <h2>2. Architecture</h2>
+    <p>The system consists of three main components running locally to simulate a production environment:</p>
+
+    <h3>A. The Client (React Native App)</h3>
+    <ul>
+        <li><strong>Framework:</strong> React Native 0.82.0</li>
+        <li><strong>Library:</strong> <code>@hot-updater/react-native</code> (v0.23.1)</li>
+        <li><strong>Role:</strong> Checks for updates, downloads bundles, and reloads the JS context.</li>
+    </ul>
+
+    <h3>B. The API Server (Port 3000)</h3>
+    <ul>
+        <li><strong>Role:</strong> Acts as the "Gatekeeper".</li>
+        <li><strong>Function:</strong> Validates the user (Mock Auth), generates a <strong>Signed URL</strong>, and returns update metadata.</li>
+    </ul>
+
+    <h3>C. The CDN Server (Port 4000)</h3>
+    <ul>
+        <li><strong>Role:</strong> Acts as the "Storage".</li>
+        <li><strong>Function:</strong> Hosts the <code>update.zip</code> and blocks access unless a valid <code>?token=secure-signature</code> is present.</li>
+    </ul>
+
+    <hr>
+
+    <h2>4. The Update Process Workflow</h2>
+    
+    <h3>A. Developer Side (Releasing an Update)</h3>
+    <p>You can deploy updates either <strong>Manually</strong> or <strong>Automatically</strong>.</p>
+
+    <h4>Option 1: Automatic Deployment (Recommended)</h4>
+    <p>We have created a script <code>deploy.js</code> in the project root that handles bundling, zipping, hashing, and updating metadata in one go.</p>
+    <ol>
+        <li><strong>Run the script:</strong>
+            <pre>node deploy.js 2.0.1</pre>
+        </li>
+        <li><strong>Done!</strong> The script will:
+            <ul>
+                <li>Build the React Native bundle.</li>
+                <li>Zip it.</li>
+                <li>Calculate the SHA256 hash.</li>
+                <li>Copy it to the CDN folder.</li>
+                <li>Update <code>metadata.json</code> automatically.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>Option 2: Manual Deployment</h4>
+    <ol>
+        <li><strong>Modify Code:</strong> Make changes to your React Native JavaScript/TypeScript code.</li>
+        <li><strong>Generate Bundle:</strong> Run the React Native bundler to compile the JS.
+            <pre>npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output dist/index.android.bundle</pre>
+        </li>
+        <li><strong>Package Update:</strong> Zip the bundle file.
+            <pre>Compress-Archive -Path dist/index.android.bundle -DestinationPath dist/update.zip -Force</pre>
+        </li>
+        <li><strong>Calculate Hash:</strong> You need the SHA256 hash for security.
+            <pre>Get-FileHash dist/update.zip -Algorithm SHA256</pre>
+        </li>
+        <li><strong>Deploy Files:</strong>
+            <ul>
+                <li>Move <code>dist/update.zip</code> to <code>local-system/cdn-server/storage/android/</code>.</li>
+            </ul>
+        </li>
+        <li><strong>Update Metadata:</strong>
+            <ul>
+                <li>Open <code>local-system/cdn-server/storage/android/metadata.json</code>.</li>
+                <li>Update <code>"version"</code>, <code>"fileHash"</code>, and <code>"id"</code>.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>B. User Side (Receiving an Update)</h3>
+        <li><strong>Generate Bundle:</strong> Run the React Native bundler to compile the JS.
+            <pre>npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output dist/index.android.bundle</pre>
+        </li>
+        <li><strong>Package Update:</strong> Zip the bundle file.
+            <pre>Compress-Archive -Path dist/index.android.bundle -DestinationPath dist/update.zip</pre>
+        </li>
+        <li><strong>Deploy:</strong>
+            <ul>
+                <li>Upload <code>update.zip</code> to the CDN storage folder.</li>
+                <li>Update <code>metadata.json</code> with the new version number, file hash, and download URL.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>B. User Side (Receiving an Update)</h3>
+    <ol>
+        <li><strong>Check:</strong> The App sends a request to <code>GET /check</code>.</li>
+        <li><strong>Authenticate:</strong> The API Server validates the user's session/token.</li>
+        <li><strong>Sign:</strong> The API Server generates a temporary "Signed URL".</li>
+        <li><strong>Download:</strong> The App uses this secure URL to download the zip from the CDN.</li>
+        <li><strong>Apply:</strong> The library unzips the bundle and replaces the current JS bundle.</li>
+        <li><strong>Reload:</strong> The App reloads, instantly showing the new version.</li>
+    </ol>
+
+    <hr>
+
+    <h2>5. Challenges & Solutions (Troubleshooting Log)</h2>
+    <p>During the implementation, we encountered several critical issues. Here is how we solved them:</p>
+
+    <!-- Issue 1 -->
+    <div class="problem-box">
+        <strong>Issue 1: "Property '__HOT_UPDATER_BUNDLE_ID' doesn't exist"</strong><br>
+        The app crashed immediately on launch because the bundle ID was missing.
+    </div>
+    <div class="solution-box">
+        <strong>Solution:</strong><br>
+        We installed <code>hot-updater</code> as a dev dependency and added <code>'hot-updater/babel-plugin'</code> to <code>babel.config.js</code>. This injects the necessary ID during the build process.
+    </div>
+
+    <!-- Issue 2 -->
+    <div class="problem-box">
+        <strong>Issue 2: "undefined is not a function" (API Mismatch)</strong><br>
+        Calling <code>HotUpdater.check()</code> caused a crash. The documentation we followed was outdated.
+    </div>
+    <div class="solution-box">
+        <strong>Solution:</strong><br>
+        We inspected the source code in <code>node_modules</code> and found the API had changed in v0.23. We switched to <code>HotUpdater.checkForUpdate()</code> and <code>update.updateBundle()</code>.
+    </div>
+
+    <!-- Issue 3 -->
+    <div class="problem-box">
+        <strong>Issue 3: Server 404 / 403 Errors</strong><br>
+        The app could not communicate with the local API server due to method and response format mismatches.
+    </div>
+    <div class="solution-box">
+        <strong>Solution:</strong><br>
+        We updated <code>api.js</code> to handle <code>GET</code> requests (instead of POST) and ensured the JSON response included <code>fileUrl</code> instead of just <code>url</code>.
+    </div>
+
+    <!-- Issue 4 -->
+    <div class="problem-box">
+        <strong>Issue 4: Network Security Policy</strong><br>
+        Android blocked the connection to <code>http://10.0.2.2:3000</code> because it was not HTTPS.
+    </div>
+    <div class="solution-box">
+        <strong>Solution:</strong><br>
+        We modified <code>AndroidManifest.xml</code> to add <code>android:usesCleartextTraffic="true"</code> to allow local HTTP testing.
+    </div>
+
+    <!-- Issue 5 -->
+    <div class="problem-box">
+        <strong>Issue 5: "No update available" (Testing Logic)</strong><br>
+        We initially built the app with "Version 2.0.0", so it didn't see the update on the server (which was also 2.0.0).
+    </div>
+    <div class="solution-box">
+        <strong>Solution:</strong><br>
+        We reverted the App code to "Version 1.0.0", rebuilt the APK, and then the update to "Version 2.0.0" was successfully detected and applied.
+    </div>
+
+    <hr>
+
+    <h2>6. Final Result</h2>
+    <ul>
+        <li><strong>Initial State:</strong> App running <strong>Version 1.0.0</strong>.</li>
+        <li><strong>Action:</strong> User clicked "Check for Secure Update".</li>
+        <li><strong>Process:</strong> App authenticated -> Received Signed URL -> Downloaded Zip -> Reloaded.</li>
+        <li><strong>Final State:</strong> App running <strong>Version 2.0.0</strong> without an App Store release.</li>
+    </ul>
+
+</div>
+
+</body>
+</html>
