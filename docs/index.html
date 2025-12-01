@@ -437,6 +437,7 @@ export default App;</code></pre>
                 <th>Feature</th>
                 <th>Self-Hosted (Our Solution)</th>
                 <th>Managed (CodePush/Expo)</th>
+                <th>RevoPush</th>
             </tr>
         </thead>
         <tbody>
@@ -444,75 +445,90 @@ export default App;</code></pre>
                 <td><strong>Cost</strong></td>
                 <td><span class="check-icon">✔</span> Free (Only Infrastructure Costs)</td>
                 <td><span class="cross-icon">✘</span> Paid Tiers / Expensive at Scale</td>
+                <td><span class="cross-icon">✘</span> Paid / Subscription</td>
             </tr>
             <tr>
                 <td><strong>Data Privacy</strong></td>
                 <td><span class="check-icon">✔</span> 100% Private (Your Servers)</td>
                 <td><span class="cross-icon">✘</span> Shared with 3rd Party</td>
+                <td><span class="cross-icon">✘</span> Shared with Provider</td>
             </tr>
             <tr>
                 <td><strong>Server Control</strong></td>
                 <td><span class="check-icon">✔</span> Full Access (Logs, Config)</td>
                 <td><span class="cross-icon">✘</span> Black Box</td>
+                <td><span class="cross-icon">✘</span> Limited Control</td>
             </tr>
             <tr>
                 <td><strong>Custom Auth</strong></td>
                 <td><span class="check-icon">✔</span> Unlimited (JWT, OAuth, VPN)</td>
                 <td><span class="cross-icon">✘</span> Limited / Standard Flows</td>
+                <td><span class="cross-icon">✘</span> Standard Auth</td>
             </tr>
             <tr>
                 <td><strong>Bundle Size</strong></td>
                 <td><span class="check-icon">✔</span> Unlimited</td>
                 <td><span class="cross-icon">✘</span> Often Capped (e.g., 50MB)</td>
+                <td><span class="cross-icon">✘</span> Capped / Tiered</td>
             </tr>
             <tr>
                 <td><strong>Rate Limits</strong></td>
                 <td><span class="check-icon">✔</span> None (Scale as needed)</td>
                 <td><span class="cross-icon">✘</span> API Rate Limits apply</td>
+                <td><span class="cross-icon">✘</span> Rate Limits apply</td>
             </tr>
             <tr>
                 <td><strong>Security</strong></td>
                 <td><span class="check-icon">✔</span> Custom (Signed URLs, IP Allowlist)</td>
                 <td><span class="cross-icon">✘</span> Standard Shared Keys</td>
+                <td><span class="cross-icon">✘</span> Standard Keys</td>
             </tr>
             <tr>
                 <td><strong>Uptime SLA</strong></td>
                 <td><span class="cross-icon">✘</span> Your Responsibility</td>
+                <td><span class="check-icon">✔</span> Provider's Responsibility</td>
                 <td><span class="check-icon">✔</span> Provider's Responsibility</td>
             </tr>
             <tr>
                 <td><strong>Setup Complexity</strong></td>
                 <td><span class="cross-icon">✘</span> High (DIY Infrastructure)</td>
                 <td><span class="check-icon">✔</span> Low (Plug & Play)</td>
+                <td><span class="check-icon">✔</span> Low (Easy Setup)</td>
             </tr>
             <tr>
                 <td><strong>Maintenance</strong></td>
                 <td><span class="cross-icon">✘</span> You patch servers</td>
+                <td><span class="check-icon">✔</span> Managed by Provider</td>
                 <td><span class="check-icon">✔</span> Managed by Provider</td>
             </tr>
             <tr>
                 <td><strong>China Access</strong></td>
                 <td><span class="check-icon">✔</span> Full Control (Choose your CDN)</td>
                 <td><span class="cross-icon">✘</span> Often Blocked or Slow</td>
+                <td><span class="cross-icon">✘</span> Depends on CDN</td>
             </tr>
             <tr>
                 <td><strong>Integration</strong></td>
                 <td><span class="check-icon">✔</span> Connect to any Backend/DB</td>
                 <td><span class="cross-icon">✘</span> Provider SDK only</td>
+                <td><span class="cross-icon">✘</span> SDK Dependent</td>
             </tr>
             <tr>
                 <td><strong>Rollback Speed</strong></td>
                 <td><span class="check-icon">✔</span> Instant (Metadata change)</td>
                 <td><span class="check-icon">✔</span> Dashboard/CLI delay</td>
+                <td><span class="check-icon">✔</span> Dashboard Control</td>
             </tr>
             <tr>
                 <td><strong>Analytics</strong></td>
                 <td><span class="check-icon">✔</span> Custom (Your DB/Tools)</td>
                 <td><span class="check-icon">✔</span> Provider Dashboard</td>
+                <td><span class="check-icon">✔</span> Built-in Analytics</td>
             </tr>
             <tr>
                 <td><strong>Vendor Lock-in</strong></td>
                 <td><span class="check-icon">✔</span> None</td>
+                <td><span class="cross-icon">✘</span> High</td>
                 <td><span class="cross-icon">✘</span> High</td>
             </tr>
         </tbody>
