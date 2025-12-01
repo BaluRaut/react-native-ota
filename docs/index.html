@@ -229,7 +229,170 @@
         <li><strong>Final State:</strong> App running <strong>Version 2.0.0</strong> without an App Store release.</li>
     </ul>
 
-</div>
+    <hr>
+
+    <h2>7. Source Code Reference</h2>
+
+    <h3>A. CDN Server (cdn.js)</h3>
+    <p>This server simulates CloudFront/S3. It hosts the files but blocks access unless a valid token is present.</p>
+    <pre><code>const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const app = express();
+
+app.use(cors());
+
+// MIDDLEWARE: Simulate "Signed URL" Security
+// Only allow downloads if ?token=secure-signature is present
+const secureGuard = (req, res, next) => {
+    const token = req.query.token;
+    if (token !== 'secure-signature') {
+        console.log(`🛑 Blocked access to ${req.path} (Missing/Invalid Token)`);
+        return res.status(403).send('Forbidden: Invalid Signature');
+    }
+    console.log(`✅ Serving ${req.path}`);
+    next();
+};
+
+// Serve static files from 'storage' folder, PROTECTED by guard
+app.use('/files', secureGuard, express.static(path.join(__dirname, 'storage')));
+
+app.listen(4000, () => {
+    console.log('☁️  Fake CloudFront running on http://localhost:4000');
+    console.log('📂 Serving files from ./storage');
+});</code></pre>
+
+    <h3>B. API Server (api.js)</h3>
+    <p>This server simulates your backend API. It authenticates the user and generates the signed URL.</p>
+    <pre><code>const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// Point to the CDN storage to read metadata
+const STORAGE_PATH = path.join(__dirname, '../cdn-server/storage');
+
+app.get('/check', (req, res) => {
+    console.log("🔎 App requested update check...");
+
+    // 1. Auth Check (Mock)
+    if (req.headers.authorization !== 'Bearer my-secret-user') {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Client sends platform in headers: x-app-platform
+    const platform = req.headers['x-app-platform'] || 'android';
+    const metadataPath = path.join(STORAGE_PATH, platform, 'metadata.json');
+
+    if (!fs.existsSync(metadataPath)) {
+        console.log(`⚠️ Metadata not found at ${metadataPath}`);
+        return res.json({ update: false });
+    }
+
+    // 2. Read Metadata
+    try {
+        const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+
+        // 3. "Sign" the URL
+        // We append the token that the CDN expects
+        const signedUrl = `${metadata.fileUrl}?token=secure-signature`;
+
+        console.log("✍️  Signed URL generated");
+
+        // 4. Return to App
+        res.json({
+            ...metadata,
+            fileUrl: signedUrl
+        });
+    } catch (err) {
+        console.error("Error reading metadata:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+app.listen(3000, () => console.log('🛡️  Auth API running on http://localhost:3000'));</code></pre>
+
+    <h3>C. React Native Client (App.tsx)</h3>
+    <p>The client-side logic to check for updates and apply them.</p>
+    <pre><code>import React, { useState } from 'react';
+import { View, Text, Button, Alert, StyleSheet, ActivityIndicator } from 'react-native';
+import { HotUpdater } from '@hot-updater/react-native';
+
+const App = () => {
+  const [status, setStatus] = useState('Idle');
+  const [loading, setLoading] = useState(false);
+
+  // CHANGE THIS TEXT TO TEST UPDATE (e.g., "Version 2.0.0")
+  const CURRENT_VERSION_TEXT = "Version 1.0.0";
+
+  const checkUpdate = async () => {
+    setLoading(true);
+    setStatus('Checking API...');
+
+    try {
+      // 1. Check for update
+      const update = await HotUpdater.checkForUpdate({
+        source: "http://10.0.2.2:3000/check",
+        requestHeaders: {
+          Authorization: "Bearer my-secret-user"
+        }
+      });
+
+      if (update) {
+        setStatus(`Found update! Downloading...`);
+
+        // 2. Download and Apply Bundle
+        await update.updateBundle();
+
+        Alert.alert("Update Ready", "The app will now restart to apply the update.", [
+            { text: "OK", onPress: () => HotUpdater.reload() }
+        ]);
+        setStatus('Update applied. Restarting...');
+      } else {
+        setStatus('No update available on server.');
+      }
+    } catch (e: any) {
+      setStatus('Error: ' + e.message);
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>OTA POC App</Text>
+      <View style={styles.card}>
+        <Text style={styles.label}>Current Bundle Version:</Text>
+        <Text style={styles.version}>{CURRENT_VERSION_TEXT}</Text>
+      </View>
+      <View style={styles.statusBox}>
+        <Text style={styles.statusText}>{status}</Text>
+      </View>
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <Button title="Check for Secure Update" onPress={checkUpdate} />
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#f5f5f5' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },
+  card: { backgroundColor: 'white', padding: 20, borderRadius: 10, marginBottom: 20, elevation: 2 },
+  label: { fontSize: 14, color: '#666' },
+  version: { fontSize: 28, fontWeight: 'bold', color: '#2563eb', marginTop: 5 },
+  statusBox: { backgroundColor: '#e0e7ff', padding: 15, borderRadius: 8, marginBottom: 20 },
+  statusText: { color: '#1e40af', textAlign: 'center' }
+});
+
+export default App;</code></pre>
 
 </body>
 </html>
