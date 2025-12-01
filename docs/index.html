@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OTA POC Documentation</title>
+    <!-- PrismJS for Monaco-like Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-vsc-dark-plus.min.css" rel="stylesheet" />
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -17,20 +19,27 @@
         h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
         h2 { color: #2980b9; margin-top: 30px; }
         h3 { color: #16a085; }
-        code {
+        
+        /* Code Block Styling (Monaco-like) */
+        pre[class*="language-"] {
+            border-radius: 8px;
+            margin: 1.5em 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        code[class*="language-"] {
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            text-shadow: none;
+        }
+        /* Inline code */
+        :not(pre) > code {
             background-color: #e8e8e8;
             padding: 2px 5px;
             border-radius: 4px;
             font-family: 'Consolas', 'Monaco', monospace;
             color: #c7254e;
         }
-        pre {
-            background-color: #2d3436;
-            color: #dfe6e9;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
+
         .container {
             background-color: white;
             padding: 40px;
@@ -58,6 +67,29 @@
             color: white;
         }
         .success { background-color: #27ae60; }
+
+        /* Comparison Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #2c3e50;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        tr:hover { background-color: #f5f5f5; }
+        tr:nth-of-type(even) { background-color: #f8f9fa; }
+        .check-icon { color: #27ae60; font-weight: bold; }
+        .cross-icon { color: #c0392b; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -235,7 +267,7 @@
 
     <h3>A. CDN Server (cdn.js)</h3>
     <p>This server simulates CloudFront/S3. It hosts the files but blocks access unless a valid token is present.</p>
-    <pre><code>const express = require('express');
+    <pre><code class="language-javascript">const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const app = express();
@@ -264,7 +296,7 @@ app.listen(4000, () => {
 
     <h3>B. API Server (api.js)</h3>
     <p>This server simulates your backend API. It authenticates the user and generates the signed URL.</p>
-    <pre><code>const express = require('express');
+    <pre><code class="language-javascript">const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
@@ -318,7 +350,7 @@ app.listen(3000, () => console.log('🛡️  Auth API running on http://localhos
 
     <h3>C. React Native Client (App.tsx)</h3>
     <p>The client-side logic to check for updates and apply them.</p>
-    <pre><code>import React, { useState } from 'react';
+    <pre><code class="language-tsx">import React, { useState } from 'react';
 import { View, Text, Button, Alert, StyleSheet, ActivityIndicator } from 'react-native';
 import { HotUpdater } from '@hot-updater/react-native';
 
@@ -393,6 +425,107 @@ const styles = StyleSheet.create({
 });
 
 export default App;</code></pre>
+
+    <hr>
+
+    <h2>8. Comparison: Self-Hosted vs. Managed OTA</h2>
+    <p>Why choose a self-hosted solution over managed services like CodePush or Expo Updates? Here is a detailed comparison.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Feature</th>
+                <th>Self-Hosted (Our Solution)</th>
+                <th>Managed (CodePush/Expo)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Cost</strong></td>
+                <td><span class="check-icon">✔</span> Free (Only Infrastructure Costs)</td>
+                <td><span class="cross-icon">✘</span> Paid Tiers / Expensive at Scale</td>
+            </tr>
+            <tr>
+                <td><strong>Data Privacy</strong></td>
+                <td><span class="check-icon">✔</span> 100% Private (Your Servers)</td>
+                <td><span class="cross-icon">✘</span> Shared with 3rd Party</td>
+            </tr>
+            <tr>
+                <td><strong>Server Control</strong></td>
+                <td><span class="check-icon">✔</span> Full Access (Logs, Config)</td>
+                <td><span class="cross-icon">✘</span> Black Box</td>
+            </tr>
+            <tr>
+                <td><strong>Custom Auth</strong></td>
+                <td><span class="check-icon">✔</span> Unlimited (JWT, OAuth, VPN)</td>
+                <td><span class="cross-icon">✘</span> Limited / Standard Flows</td>
+            </tr>
+            <tr>
+                <td><strong>Bundle Size</strong></td>
+                <td><span class="check-icon">✔</span> Unlimited</td>
+                <td><span class="cross-icon">✘</span> Often Capped (e.g., 50MB)</td>
+            </tr>
+            <tr>
+                <td><strong>Rate Limits</strong></td>
+                <td><span class="check-icon">✔</span> None (Scale as needed)</td>
+                <td><span class="cross-icon">✘</span> API Rate Limits apply</td>
+            </tr>
+            <tr>
+                <td><strong>Security</strong></td>
+                <td><span class="check-icon">✔</span> Custom (Signed URLs, IP Allowlist)</td>
+                <td><span class="cross-icon">✘</span> Standard Shared Keys</td>
+            </tr>
+            <tr>
+                <td><strong>Uptime SLA</strong></td>
+                <td><span class="cross-icon">✘</span> Your Responsibility</td>
+                <td><span class="check-icon">✔</span> Provider's Responsibility</td>
+            </tr>
+            <tr>
+                <td><strong>Setup Complexity</strong></td>
+                <td><span class="cross-icon">✘</span> High (DIY Infrastructure)</td>
+                <td><span class="check-icon">✔</span> Low (Plug & Play)</td>
+            </tr>
+            <tr>
+                <td><strong>Maintenance</strong></td>
+                <td><span class="cross-icon">✘</span> You patch servers</td>
+                <td><span class="check-icon">✔</span> Managed by Provider</td>
+            </tr>
+            <tr>
+                <td><strong>China Access</strong></td>
+                <td><span class="check-icon">✔</span> Full Control (Choose your CDN)</td>
+                <td><span class="cross-icon">✘</span> Often Blocked or Slow</td>
+            </tr>
+            <tr>
+                <td><strong>Integration</strong></td>
+                <td><span class="check-icon">✔</span> Connect to any Backend/DB</td>
+                <td><span class="cross-icon">✘</span> Provider SDK only</td>
+            </tr>
+            <tr>
+                <td><strong>Rollback Speed</strong></td>
+                <td><span class="check-icon">✔</span> Instant (Metadata change)</td>
+                <td><span class="check-icon">✔</span> Dashboard/CLI delay</td>
+            </tr>
+            <tr>
+                <td><strong>Analytics</strong></td>
+                <td><span class="check-icon">✔</span> Custom (Your DB/Tools)</td>
+                <td><span class="check-icon">✔</span> Provider Dashboard</td>
+            </tr>
+            <tr>
+                <td><strong>Vendor Lock-in</strong></td>
+                <td><span class="check-icon">✔</span> None</td>
+                <td><span class="cross-icon">✘</span> High</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<!-- PrismJS Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-tsx.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
 
 </body>
 </html>
